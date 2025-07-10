@@ -1,24 +1,56 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carte d'identité française</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Générateur de Carte d'Identité</title>
   <style>
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
     body {
       background: #e0e0e0;
       font-family: "Arial Narrow", Arial, sans-serif;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       padding: 20px;
-      min-height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #2a2e92;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    form input {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    form button {
+      background-color: #2a2e92;
+      color: #fff;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
     }
 
     .carte-id {
@@ -30,8 +62,9 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       position: relative;
       overflow: hidden;
-      display: flex;
+      display: none;
       flex-direction: column;
+      margin-top: 20px;
     }
 
     .bande-bleue {
@@ -56,8 +89,8 @@
       min-width: 120px;
       height: auto;
       aspect-ratio: 3/4;
-      background: url('https://via.placeholder.com/180x220') no-repeat center center;
       background-size: cover;
+      background-position: center;
       border: 2px solid #555;
     }
 
@@ -114,28 +147,69 @@
   </style>
 </head>
 <body>
-  <div class="carte-id">
+
+  <h1>Générateur de Carte d’Identité</h1>
+
+  <form id="formulaire">
+    <input type="text" id="nom" placeholder="Nom" required>
+    <input type="text" id="prenom" placeholder="Prénom(s)" required>
+    <input type="text" id="sexe" placeholder="Sexe (M/F)" required>
+    <input type="date" id="naissance" placeholder="Date de naissance" required>
+    <input type="text" id="lieu" placeholder="Lieu de naissance" required>
+    <input type="text" id="adresse" placeholder="Adresse" required>
+    <input type="date" id="delivree" placeholder="Date de délivrance" required>
+    <input type="date" id="valable" placeholder="Date de validité" required>
+    <input type="text" id="autorite" placeholder="Autorité (ex: Sous-Préfecture...)" required>
+    <input type="text" id="mrz1" placeholder="Ligne MRZ 1" required>
+    <input type="text" id="mrz2" placeholder="Ligne MRZ 2" required>
+    <input type="url" id="photo" placeholder="URL de la photo" required>
+    <button type="submit">Générer la carte</button>
+  </form>
+
+  <div class="carte-id" id="carte">
     <div class="bande-bleue">RÉPUBLIQUE FRANÇAISE</div>
     <div class="contenu">
-      <div class="photo"></div>
+      <div class="photo" id="output-photo"></div>
       <div class="infos">
-        <div><span>Nom :</span> MOUSSA</div>
-        <div><span>Prénom(s) :</span> HAMZA</div>
-        <div><span>Sexe :</span> M</div>
-        <div><span>Né(e) le :</span> 15.08.2005</div>
-        <div><span>À :</span> NICE</div>
-        <div><span>Adresse :</span> 10 RUE CHÂTEAUVERT, NICE (06)</div>
-        <div><span>Délivrée le :</span> 15.06.2016</div>
-        <div><span>Valable jusqu’au :</span> 14.06.2031</div>
-        <div><span>Autorité :</span> Sous-Préfecture de Alpes-Maritimes</div>
+        <div><span>Nom :</span> <span id="output-nom"></span></div>
+        <div><span>Prénom(s) :</span> <span id="output-prenom"></span></div>
+        <div><span>Sexe :</span> <span id="output-sexe"></span></div>
+        <div><span>Né(e) le :</span> <span id="output-naissance"></span></div>
+        <div><span>À :</span> <span id="output-lieu"></span></div>
+        <div><span>Adresse :</span> <span id="output-adresse"></span></div>
+        <div><span>Délivrée le :</span> <span id="output-delivree"></span></div>
+        <div><span>Valable jusqu’au :</span> <span id="output-valable"></span></div>
+        <div><span>Autorité :</span> <span id="output-autorite"></span></div>
         <div class="signature"><span>Signature :</span> ✍️</div>
       </div>
     </div>
     <div class="mrz">
-      IDFRAMOUSSA<<<<<<<<<<<<<<<<<br>
-      8806923102858HAMZA<<<<<<<<<0508158M6
+      <div id="output-mrz1"></div>
+      <div id="output-mrz2"></div>
     </div>
     <div class="rf-background"></div>
   </div>
+
+  <script>
+    const form = document.getElementById("formulaire");
+    const carte = document.getElementById("carte");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      document.getElementById("output-nom").textContent = document.getElementById("nom").value.toUpperCase();
+      document.getElementById("output-prenom").textContent = document.getElementById("prenom").value;
+      document.getElementById("output-sexe").textContent = document.getElementById("sexe").value.toUpperCase();
+      document.getElementById("output-naissance").textContent = document.getElementById("naissance").value.split("-").reverse().join(".");
+      document.getElementById("output-lieu").textContent = document.getElementById("lieu").value;
+      document.getElementById("output-adresse").textContent = document.getElementById("adresse").value;
+      document.getElementById("output-delivree").textContent = document.getElementById("delivree").value.split("-").reverse().join(".");
+      document.getElementById("output-valable").textContent = document.getElementById("valable").value.split("-").reverse().join(".");
+      document.getElementById("output-autorite").textContent = document.getElementById("autorite").value;
+      document.getElementById("output-mrz1").textContent = document.getElementById("mrz1").value.toUpperCase();
+      document.getElementById("output-mrz2").textContent = document.getElementById("mrz2").value.toUpperCase();
+      document.getElementById("output-photo").style.backgroundImage = `url('${document.getElementById("photo").value}')`;
+      carte.style.display = "flex";
+    });
+  </script>
 </body>
 </html>
