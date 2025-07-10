@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carte d'identité française</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #e0e0e0;
+      font-family: "Arial Narrow", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .carte-id {
+      width: 95vw;
+      max-width: 850px;
+      aspect-ratio: 1.585;
+      background: linear-gradient(to bottom, #d6e5ce 0%, #b4c7dc 60%, #f1f1f1 100%);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bande-bleue {
+      background-color: #2a2e92;
+      color: white;
+      padding: 1.2vh 2vw;
+      font-size: 2.2vh;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .contenu {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2vw;
+      padding: 2vh 2vw;
+      flex-grow: 1;
+    }
+
+    .photo {
+      flex: 0 0 28%;
+      min-width: 120px;
+      height: auto;
+      aspect-ratio: 3/4;
+      background: url('https://via.placeholder.com/180x220') no-repeat center center;
+      background-size: cover;
+      border: 2px solid #555;
+    }
+
+    .infos {
+      flex: 1;
+      font-size: 1.9vh;
+      line-height: 1.7;
+      color: #000;
+      min-width: 200px;
+    }
+
+    .infos span {
+      font-weight: bold;
+      color: #1c2b61;
+    }
+
+    .signature {
+      margin-top: 1vh;
+      font-style: italic;
+      font-size: 1.7vh;
+    }
+
+    .mrz {
+      font-family: "Courier New", monospace;
+      font-size: 1.8vh;
+      letter-spacing: 1.5px;
+      background: #f1f1f1;
+      padding: 1.2vh 2vw;
+      border-radius: 4px;
+      text-align: left;
+    }
+
+    .rf-background {
+      position: absolute;
+      top: 50px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: repeating-linear-gradient(
+        45deg,
+        rgba(216, 176, 127, 0.15) 0,
+        rgba(216, 176, 127, 0.15) 10px,
+        transparent 10px,
+        transparent 30px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .carte-id > * {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="carte-id">
+    <div class="bande-bleue">RÉPUBLIQUE FRANÇAISE</div>
+    <div class="contenu">
+      <div class="photo"></div>
+      <div class="infos">
+        <div><span>Nom :</span> MOUSSA</div>
+        <div><span>Prénom(s) :</span> HAMZA</div>
+        <div><span>Sexe :</span> M</div>
+        <div><span>Né(e) le :</span> 15.08.2005</div>
+        <div><span>À :</span> NICE</div>
+        <div><span>Adresse :</span> 10 RUE CHÂTEAUVERT, NICE (06)</div>
+        <div><span>Délivrée le :</span> 15.06.2016</div>
+        <div><span>Valable jusqu’au :</span> 14.06.2031</div>
+        <div><span>Autorité :</span> Sous-Préfecture de Alpes-Maritimes</div>
+        <div class="signature"><span>Signature :</span> ✍️</div>
+      </div>
+    </div>
+    <div class="mrz">
+      IDFRAMOUSSA<<<<<<<<<<<<<<<<<br>
+      8806923102858HAMZA<<<<<<<<<0508158M6
+    </div>
+    <div class="rf-background"></div>
+  </div>
+</body>
+</html>
