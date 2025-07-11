@@ -1,215 +1,137 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Générateur de Carte d'Identité</title>
+  <meta charset="UTF-8">
+  <title>Carte d'identité FR</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
-      background: #e0e0e0;
-      font-family: "Arial Narrow", Arial, sans-serif;
+      font-family: Arial, sans-serif;
+      background: #e6e6e6;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
     }
 
-    h1 {
-      margin-bottom: 20px;
-      color: #2a2e92;
-    }
-
-    form {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 30px;
-      max-width: 600px;
-      width: 100%;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    form input {
-      width: 100%;
-      padding: 8px;
-      margin: 10px 0;
-      border: 1px solid #aaa;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-
-    form button {
-      background-color: #2a2e92;
-      color: #fff;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .carte-id {
-      width: 95vw;
-      max-width: 850px;
-      aspect-ratio: 1.585;
-      background: linear-gradient(to bottom, #d6e5ce 0%, #b4c7dc 60%, #f1f1f1 100%);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      position: relative;
-      overflow: hidden;
-      display: none;
-      flex-direction: column;
-      margin-top: 20px;
-    }
-
-    .bande-bleue {
-      background-color: #2a2e92;
-      color: white;
-      padding: 1.2vh 2vw;
-      font-size: 2.2vh;
-      font-weight: bold;
-      text-align: left;
-    }
-
-    .contenu {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2vw;
-      padding: 2vh 2vw;
-      flex-grow: 1;
-    }
-
-    .photo {
-      flex: 0 0 28%;
-      min-width: 120px;
-      height: auto;
-      aspect-ratio: 3/4;
+    #idCard {
+      width: 800px;
+      height: 500px;
+      background-image: url('https://yourdomain.com/id_card_bg.jpg'); /* Mets ici l’image de fond sans filigrane */
       background-size: cover;
-      background-position: center;
-      border: 2px solid #555;
-    }
-
-    .infos {
-      flex: 1;
-      font-size: 1.9vh;
-      line-height: 1.7;
-      color: #000;
-      min-width: 200px;
-    }
-
-    .infos span {
-      font-weight: bold;
-      color: #1c2b61;
-    }
-
-    .signature {
-      margin-top: 1vh;
-      font-style: italic;
-      font-size: 1.7vh;
-    }
-
-    .mrz {
-      font-family: "Courier New", monospace;
-      font-size: 1.8vh;
-      letter-spacing: 1.5px;
-      background: #f1f1f1;
-      padding: 1.2vh 2vw;
-      border-radius: 4px;
-      text-align: left;
-    }
-
-    .rf-background {
-      position: absolute;
-      top: 50px;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image: repeating-linear-gradient(
-        45deg,
-        rgba(216, 176, 127, 0.15) 0,
-        rgba(216, 176, 127, 0.15) 10px,
-        transparent 10px,
-        transparent 30px
-      );
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .carte-id > * {
       position: relative;
-      z-index: 1;
+      color: #000;
+      font-size: 18px;
+      padding: 40px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    }
+
+    .field {
+      position: absolute;
+    }
+
+    .prenom    { top: 100px; left: 250px; }
+    .nom       { top: 140px; left: 250px; }
+    .naissance { top: 180px; left: 250px; }
+    .sexe      { top: 220px; left: 250px; }
+    .taille    { top: 260px; left: 250px; }
+    .adresse   { top: 300px; left: 250px; width: 500px; }
+    .photo     { top: 100px; left: 40px; width: 160px; height: 200px; background: #ccc; overflow: hidden; }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    input, textarea {
+      margin: 5px;
+      padding: 5px;
+      font-size: 16px;
+    }
+
+    #download {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <h1>Générateur de Carte d’Identité</h1>
+<h2>Générateur Carte d’Identité 🇫🇷 (Ancien modèle)</h2>
 
-  <form id="formulaire">
-    <input type="text" id="nom" placeholder="Nom" required>
-    <input type="text" id="prenom" placeholder="Prénom(s)" required>
-    <input type="text" id="sexe" placeholder="Sexe (M/F)" required>
-    <input type="date" id="naissance" placeholder="Date de naissance" required>
-    <input type="text" id="lieu" placeholder="Lieu de naissance" required>
-    <input type="text" id="adresse" placeholder="Adresse" required>
-    <input type="date" id="delivree" placeholder="Date de délivrance" required>
-    <input type="date" id="valable" placeholder="Date de validité" required>
-    <input type="text" id="autorite" placeholder="Autorité (ex: Sous-Préfecture...)" required>
-    <input type="text" id="mrz1" placeholder="Ligne MRZ 1" required>
-    <input type="text" id="mrz2" placeholder="Ligne MRZ 2" required>
-    <input type="url" id="photo" placeholder="URL de la photo" required>
-    <button type="submit">Générer la carte</button>
-  </form>
+<div>
+  <input type="text" id="prenomInput" placeholder="Prénom">
+  <input type="text" id="nomInput" placeholder="Nom">
+  <input type="text" id="naissanceInput" placeholder="Date et lieu de naissance">
+  <input type="text" id="sexeInput" placeholder="Sexe (M/F)">
+  <input type="text" id="tailleInput" placeholder="Taille">
+  <input type="text" id="adresseInput" placeholder="Adresse complète">
+  <input type="file" id="photoInput" accept="image/*">
+</div>
 
-  <div class="carte-id" id="carte">
-    <div class="bande-bleue">RÉPUBLIQUE FRANÇAISE</div>
-    <div class="contenu">
-      <div class="photo" id="output-photo"></div>
-      <div class="infos">
-        <div><span>Nom :</span> <span id="output-nom"></span></div>
-        <div><span>Prénom(s) :</span> <span id="output-prenom"></span></div>
-        <div><span>Sexe :</span> <span id="output-sexe"></span></div>
-        <div><span>Né(e) le :</span> <span id="output-naissance"></span></div>
-        <div><span>À :</span> <span id="output-lieu"></span></div>
-        <div><span>Adresse :</span> <span id="output-adresse"></span></div>
-        <div><span>Délivrée le :</span> <span id="output-delivree"></span></div>
-        <div><span>Valable jusqu’au :</span> <span id="output-valable"></span></div>
-        <div><span>Autorité :</span> <span id="output-autorite"></span></div>
-        <div class="signature"><span>Signature :</span> ✍️</div>
-      </div>
-    </div>
-    <div class="mrz">
-      <div id="output-mrz1"></div>
-      <div id="output-mrz2"></div>
-    </div>
-    <div class="rf-background"></div>
-  </div>
+<div id="idCard">
+  <div class="field photo" id="photoPreview"><img src="" alt="Photo"></div>
+  <div class="field prenom" id="prenom"></div>
+  <div class="field nom" id="nom"></div>
+  <div class="field naissance" id="naissance"></div>
+  <div class="field sexe" id="sexe"></div>
+  <div class="field taille" id="taille"></div>
+  <div class="field adresse" id="adresse"></div>
+</div>
 
-  <script>
-    const form = document.getElementById("formulaire");
-    const carte = document.getElementById("carte");
+<button id="download">📥 Télécharger la carte</button>
 
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
-      document.getElementById("output-nom").textContent = document.getElementById("nom").value.toUpperCase();
-      document.getElementById("output-prenom").textContent = document.getElementById("prenom").value;
-      document.getElementById("output-sexe").textContent = document.getElementById("sexe").value.toUpperCase();
-      document.getElementById("output-naissance").textContent = document.getElementById("naissance").value.split("-").reverse().join(".");
-      document.getElementById("output-lieu").textContent = document.getElementById("lieu").value;
-      document.getElementById("output-adresse").textContent = document.getElementById("adresse").value;
-      document.getElementById("output-delivree").textContent = document.getElementById("delivree").value.split("-").reverse().join(".");
-      document.getElementById("output-valable").textContent = document.getElementById("valable").value.split("-").reverse().join(".");
-      document.getElementById("output-autorite").textContent = document.getElementById("autorite").value;
-      document.getElementById("output-mrz1").textContent = document.getElementById("mrz1").value.toUpperCase();
-      document.getElementById("output-mrz2").textContent = document.getElementById("mrz2").value.toUpperCase();
-      document.getElementById("output-photo").style.backgroundImage = `url('${document.getElementById("photo").value}')`;
-      carte.style.display = "flex";
+<!-- html2canvas pour capture image -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  const prenomInput = document.getElementById('prenomInput');
+  const nomInput = document.getElementById('nomInput');
+  const naissanceInput = document.getElementById('naissanceInput');
+  const sexeInput = document.getElementById('sexeInput');
+  const tailleInput = document.getElementById('tailleInput');
+  const adresseInput = document.getElementById('adresseInput');
+  const photoInput = document.getElementById('photoInput');
+
+  function updateCard() {
+    document.getElementById('prenom').innerText = prenomInput.value;
+    document.getElementById('nom').innerText = nomInput.value;
+    document.getElementById('naissance').innerText = naissanceInput.value;
+    document.getElementById('sexe').innerText = sexeInput.value;
+    document.getElementById('taille').innerText = tailleInput.value;
+    document.getElementById('adresse').innerText = adresseInput.value;
+  }
+
+  prenomInput.addEventListener('input', updateCard);
+  nomInput.addEventListener('input', updateCard);
+  naissanceInput.addEventListener('input', updateCard);
+  sexeInput.addEventListener('input', updateCard);
+  tailleInput.addEventListener('input', updateCard);
+  adresseInput.addEventListener('input', updateCard);
+
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.querySelector('#photoPreview img').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('download').addEventListener('click', () => {
+    html2canvas(document.getElementById("idCard")).then(canvas => {
+      const link = document.createElement("a");
+      link.download = "carte_identite.png";
+      link.href = canvas.toDataURL();
+      link.click();
     });
-  </script>
+  });
+</script>
 </body>
 </html>
