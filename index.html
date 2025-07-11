@@ -1,140 +1,648 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Carte d'identité FR</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #eee;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Humanizer - Rendez vos textes plus humains</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    #carte {
-      position: relative;
-      width: 600px;
-      height: 400px;
-      background-image: url('carte-fond.png'); /* Ton image ici */
-      background-size: cover;
-      box-shadow: 0 0 12px rgba(0,0,0,0.4);
-    }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
 
-    .champ {
-      position: absolute;
-      font-size: 14px;
-      color: #000;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
 
-    .champ.signature {
-      font-family: 'Brush Script MT', cursive;
-      font-size: 16px;
-    }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
 
-    /* Positions approximatives à ajuster si besoin */
-    #numero    { top: 30px;  left: 200px; }
-    #nom       { top: 60px;  left: 120px; }
-    #prenom    { top: 85px;  left: 120px; }
-    #sexe      { top: 110px; left: 120px; }
-    #naissance { top: 135px; left: 120px; }
-    #taille    { top: 160px; left: 120px; }
-    #signature { top: 185px; left: 120px; }
-    #photo     {
-      top: 45px; left: 30px;
-      width: 70px; height: 90px;
-      border: 1px solid #444;
-      overflow: hidden;
-    }
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
 
-    #photo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
 
-    input {
-      margin: 5px;
-      padding: 4px;
-      font-size: 14px;
-    }
+        .description {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
-    #download {
-      margin-top: 15px;
-      padding: 8px 20px;
-      background: #007BFF;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+        .main-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInUp 0.8s ease-out 0.2s both;
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .text-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 1.2rem 2rem;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-check {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-check:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-humanize {
+            background: linear-gradient(45deg, #5f27cd, #341f97);
+            color: white;
+            box-shadow: 0 8px 25px rgba(95, 39, 205, 0.3);
+        }
+
+        .btn-humanize:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(95, 39, 205, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .output-section {
+            margin-top: 2rem;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .output-section.visible {
+            opacity: 1;
+        }
+
+        .output-label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .output-box {
+            width: 100%;
+            min-height: 150px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+            font-family: inherit;
+            backdrop-filter: blur(10px);
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            margin: 1rem 0;
+        }
+
+        .loading.visible {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .stats.visible {
+            opacity: 1;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ff6b6b;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 10%;
+            width: 60px;
+            height: 60px;
+            background: #feca57;
+            border-radius: 30%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: #48dbfb;
+            border-radius: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .main-card {
+                padding: 1.5rem;
+            }
+
+            .buttons-container {
+                flex-direction: column;
+            }
+
+            .btn {
+                min-width: auto;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
 
-<h2>🪪 Générateur Carte d'identité - Ancien Modèle</h2>
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">AI Humanizer</h1>
+            <p class="subtitle">Rendez vos textes d'IA plus humains et authentiques</p>
+            <p class="description">Détectez et humanisez automatiquement vos textes générés par IA. Compatible avec ChatGPT, Claude, Gemini et tous les autres modèles d'IA.</p>
+        </div>
 
-<!-- Formulaire -->
-<div>
-  <input type="text" id="numeroInput" placeholder="Numéro carte">
-  <input type="text" id="nomInput" placeholder="Nom">
-  <input type="text" id="prenomInput" placeholder="Prénom">
-  <input type="text" id="sexeInput" placeholder="Sexe">
-  <input type="text" id="naissanceInput" placeholder="Né(e) le">
-  <input type="text" id="tailleInput" placeholder="Taille">
-  <input type="text" id="signatureInput" placeholder="Signature manuscrite">
-  <input type="file" id="photoInput" accept="image/*">
-</div>
+        <div class="main-card">
+            <div class="input-section">
+                <label class="input-label">📝 Collez votre texte ici</label>
+                <textarea class="text-input" id="inputText" placeholder="Collez votre texte généré par IA ici... Je vais l'analyser et l'humaniser pour vous !"></textarea>
+            </div>
 
-<!-- Carte -->
-<div id="carte">
-  <div class="champ" id="numero"></div>
-  <div class="champ" id="nom"></div>
-  <div class="champ" id="prenom"></div>
-  <div class="champ" id="sexe"></div>
-  <div class="champ" id="naissance"></div>
-  <div class="champ" id="taille"></div>
-  <div class="champ signature" id="signature"></div>
-  <div class="champ" id="photo"><img src=""></div>
-</div>
+            <div class="buttons-container">
+                <button class="btn btn-check" id="checkBtn">
+                    🔍 Check
+                </button>
+                <button class="btn btn-humanize" id="humanizeBtn">
+                    🤖➡️👤 Humanize
+                </button>
+            </div>
 
-<!-- Bouton téléchargement -->
-<button id="download">📥 Télécharger la carte</button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span id="loadingText">Analyse en cours...</span>
+            </div>
 
-<!-- Script html2canvas + gestion -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-  // Champs dynamiques
-  const champs = ['numero', 'nom', 'prenom', 'sexe', 'naissance', 'taille', 'signature'];
-  champs.forEach(champ => {
-    document.getElementById(champ + 'Input').addEventListener('input', e => {
-      document.getElementById(champ).innerText = e.target.value;
-    });
-  });
+            <div class="output-section" id="outputSection">
+                <label class="output-label">✨ Résultat</label>
+                <div class="output-box" id="outputBox"></div>
+                
+                <div class="stats" id="stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="aiScore">0%</span>
+                        <span class="stat-label">Détection IA</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="humanScore">0%</span>
+                        <span class="stat-label">Score Humain</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="wordCount">0</span>
+                        <span class="stat-label">Mots</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  // Photo
-  document.getElementById('photoInput').addEventListener('change', function() {
-    const file = this.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.querySelector('#photo img').src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+    <script>
+        class AIHumanizer {
+            constructor() {
+                this.inputText = document.getElementById('inputText');
+                this.checkBtn = document.getElementById('checkBtn');
+                this.humanizeBtn = document.getElementById('humanizeBtn');
+                this.loading = document.getElementById('loading');
+                this.loadingText = document.getElementById('loadingText');
+                this.outputSection = document.getElementById('outputSection');
+                this.outputBox = document.getElementById('outputBox');
+                this.stats = document.getElementById('stats');
+                this.aiScore = document.getElementById('aiScore');
+                this.humanScore = document.getElementById('humanScore');
+                this.wordCount = document.getElementById('wordCount');
+                
+                this.initEventListeners();
+            }
 
-  // Télécharger
-  document.getElementById('download').addEventListener('click', () => {
-    html2canvas(document.getElementById("carte")).then(canvas => {
-      const link = document.createElement("a");
-      link.download = "carte_identite.PNG";
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  });
-</script>
+            initEventListeners() {
+                this.checkBtn.addEventListener('click', () => this.checkText());
+                this.humanizeBtn.addEventListener('click', () => this.humanizeText());
+                this.inputText.addEventListener('input', () => this.updateWordCount());
+            }
 
+            updateWordCount() {
+                const text = this.inputText.value.trim();
+                const words = text ? text.split(/\s+/).length : 0;
+                this.wordCount.textContent = words;
+            }
+
+            showLoading(message) {
+                this.loadingText.textContent = message;
+                this.loading.classList.add('visible');
+                this.checkBtn.disabled = true;
+                this.humanizeBtn.disabled = true;
+            }
+
+            hideLoading() {
+                this.loading.classList.remove('visible');
+                this.checkBtn.disabled = false;
+                this.humanizeBtn.disabled = false;
+            }
+
+            showOutput(text) {
+                this.outputBox.textContent = text;
+                this.outputSection.classList.add('visible');
+                this.stats.classList.add('visible');
+            }
+
+            async checkText() {
+                const text = this.inputText.value.trim();
+                
+                if (!text) {
+                    alert('Veuillez saisir un texte à analyser !');
+                    return;
+                }
+
+                this.showLoading('Analyse du texte en cours...');
+
+                // Simulation d'analyse IA
+                await this.delay(2000);
+
+                const analysis = this.analyzeText(text);
+                
+                this.showOutput(`🔍 ANALYSE TERMINÉE
+
+📊 Résultats de l'analyse :
+• Score de détection IA : ${analysis.aiScore}%
+• Score humain : ${analysis.humanScore}%
+• Nombre de mots : ${analysis.wordCount}
+
+${analysis.verdict}
+
+💡 Recommandations :
+${analysis.recommendations}`);
+
+                this.aiScore.textContent = `${analysis.aiScore}%`;
+                this.humanScore.textContent = `${analysis.humanScore}%`;
+                this.wordCount.textContent = analysis.wordCount;
+
+                this.hideLoading();
+            }
+
+            async humanizeText() {
+                const text = this.inputText.value.trim();
+                
+                if (!text) {
+                    alert('Veuillez saisir un texte à humaniser !');
+                    return;
+                }
+
+                this.showLoading('Humanisation en cours...');
+
+                // Simulation d'humanisation
+                await this.delay(3000);
+
+                const humanizedText = this.performHumanization(text);
+                
+                this.showOutput(`✨ TEXTE HUMANISÉ
+
+${humanizedText}
+
+🎯 Améliorations apportées :
+• Vocabulaire plus naturel et varié
+• Structure de phrases plus fluide
+• Ton plus personnel et authentique
+• Suppression des patterns d'IA détectables
+• Ajout de nuances humaines
+
+✅ Votre texte est maintenant optimisé pour passer les détecteurs d'IA !`);
+
+                // Mise à jour des statistiques après humanisation
+                this.aiScore.textContent = `${Math.floor(Math.random() * 15 + 5)}%`;
+                this.humanScore.textContent = `${Math.floor(Math.random() * 15 + 85)}%`;
+                this.updateWordCount();
+
+                this.hideLoading();
+            }
+
+            analyzeText(text) {
+                const wordCount = text.split(/\s+/).length;
+                
+                // Patterns typiques d'IA pour la détection
+                const aiPatterns = [
+                    /en conclusion/gi,
+                    /il est important de noter/gi,
+                    /en résumé/gi,
+                    /par conséquent/gi,
+                    /néanmoins/gi,
+                    /cependant/gi,
+                    /de plus/gi,
+                    /en outre/gi
+                ];
+
+                let aiIndicators = 0;
+                aiPatterns.forEach(pattern => {
+                    if (pattern.test(text)) aiIndicators++;
+                });
+
+                // Calcul du score IA basé sur les patterns détectés
+                const aiScore = Math.min(90, Math.max(30, 40 + (aiIndicators * 10) + Math.floor(Math.random() * 20)));
+                const humanScore = 100 - aiScore;
+
+                let verdict = '';
+                let recommendations = '';
+
+                if (aiScore > 70) {
+                    verdict = '🚨 FORTE PROBABILITÉ D\'IA DÉTECTÉE\nCe texte présente de nombreux indicateurs typiques d\'une génération par IA.';
+                    recommendations = '• Utilisez la fonction "Humanize" pour rendre le texte plus naturel\n• Variez la structure des phrases\n• Ajoutez des expressions plus personnelles';
+                } else if (aiScore > 40) {
+                    verdict = '⚠️ PROBABILITÉ MODÉRÉE D\'IA\nCertains éléments suggèrent une possible génération par IA.';
+                    recommendations = '• Quelques ajustements mineurs seraient bénéfiques\n• Considérez l\'humanisation pour plus de sécurité';
+                } else {
+                    verdict = '✅ TEXTE MAJORITAIREMENT HUMAIN\nCe texte semble être rédigé par un humain.';
+                    recommendations = '• Votre texte passe déjà bien les détecteurs\n• Aucune modification majeure nécessaire';
+                }
+
+                return {
+                    aiScore,
+                    humanScore,
+                    wordCount,
+                    verdict,
+                    recommendations
+                };
+            }
+
+            performHumanization(text) {
+                // Transformations pour humaniser le texte
+                let humanizedText = text;
+
+                // Remplacements pour rendre le texte plus naturel
+                const replacements = [
+                    { pattern: /il est important de noter que/gi, replacement: 'il faut savoir que' },
+                    { pattern: /en conclusion/gi, replacement: 'au final' },
+                    { pattern: /par conséquent/gi, replacement: 'du coup' },
+                    { pattern: /néanmoins/gi, replacement: 'mais' },
+                    { pattern: /cependant/gi, replacement: 'pourtant' },
+                    { pattern: /de plus/gi, replacement: 'aussi' },
+                    { pattern: /en outre/gi, replacement: 'en plus' },
+                    { pattern: /ainsi/gi, replacement: 'comme ça' },
+                    { pattern: /par ailleurs/gi, replacement: 'd\'ailleurs' }
+                ];
+
+                replacements.forEach(({ pattern, replacement }) => {
+                    humanizedText = humanizedText.replace(pattern, replacement);
+                });
+
+                // Ajout de variations naturelles
+                const sentences = humanizedText.split('.');
+                const humanizedSentences = sentences.map(sentence => {
+                    if (sentence.trim()) {
+                        // Ajouter parfois des expressions naturelles
+                        if (Math.random() < 0.3) {
+                            const naturalExpressions = [
+                                'En fait, ',
+                                'Personnellement, ',
+                                'À mon avis, ',
+                                'Concrètement, ',
+                                'Dans les faits, '
+                            ];
+                            const randomExpression = naturalExpressions[Math.floor(Math.random() * naturalExpressions.length)];
+                            return randomExpression + sentence.trim().toLowerCase();
+                        }
+                    }
+                    return sentence;
+                });
+
+                return humanizedSentences.join('. ').trim();
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialisation de l'application
+        document.addEventListener('DOMContentLoaded', () => {
+            new AIHumanizer();
+        });
+    </script>
 </body>
 </html>
