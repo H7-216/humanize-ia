@@ -6,132 +6,135 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #e6e6e6;
+      background: #eee;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
     }
 
-    #idCard {
-      width: 800px;
-      height: 500px;
-      background-image: url('https://yourdomain.com/id_card_bg.jpg'); /* Mets ici l’image de fond sans filigrane */
-      background-size: cover;
+    #carte {
       position: relative;
-      color: #000;
-      font-size: 18px;
-      padding: 40px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      width: 600px;
+      height: 400px;
+      background-image: url('carte-fond.png'); /* Ton image ici */
+      background-size: cover;
+      box-shadow: 0 0 12px rgba(0,0,0,0.4);
     }
 
-    .field {
+    .champ {
       position: absolute;
+      font-size: 14px;
+      color: #000;
     }
 
-    .prenom    { top: 100px; left: 250px; }
-    .nom       { top: 140px; left: 250px; }
-    .naissance { top: 180px; left: 250px; }
-    .sexe      { top: 220px; left: 250px; }
-    .taille    { top: 260px; left: 250px; }
-    .adresse   { top: 300px; left: 250px; width: 500px; }
-    .photo     { top: 100px; left: 40px; width: 160px; height: 200px; background: #ccc; overflow: hidden; }
+    .champ.signature {
+      font-family: 'Brush Script MT', cursive;
+      font-size: 16px;
+    }
 
-    .photo img {
+    /* Positions approximatives à ajuster si besoin */
+    #numero    { top: 30px;  left: 200px; }
+    #nom       { top: 60px;  left: 120px; }
+    #prenom    { top: 85px;  left: 120px; }
+    #sexe      { top: 110px; left: 120px; }
+    #naissance { top: 135px; left: 120px; }
+    #taille    { top: 160px; left: 120px; }
+    #signature { top: 185px; left: 120px; }
+    #photo     {
+      top: 45px; left: 30px;
+      width: 70px; height: 90px;
+      border: 1px solid #444;
+      overflow: hidden;
+    }
+
+    #photo img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    input, textarea {
+    input {
       margin: 5px;
-      padding: 5px;
-      font-size: 16px;
+      padding: 4px;
+      font-size: 14px;
     }
 
     #download {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
+      margin-top: 15px;
+      padding: 8px 20px;
       background: #007BFF;
-      color: #fff;
+      color: white;
       border: none;
+      font-size: 16px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<h2>Générateur Carte d’Identité 🇫🇷 (Ancien modèle)</h2>
+<h2>🪪 Générateur Carte d'identité - Ancien Modèle</h2>
 
+<!-- Formulaire -->
 <div>
-  <input type="text" id="prenomInput" placeholder="Prénom">
+  <input type="text" id="numeroInput" placeholder="Numéro carte">
   <input type="text" id="nomInput" placeholder="Nom">
-  <input type="text" id="naissanceInput" placeholder="Date et lieu de naissance">
-  <input type="text" id="sexeInput" placeholder="Sexe (M/F)">
+  <input type="text" id="prenomInput" placeholder="Prénom">
+  <input type="text" id="sexeInput" placeholder="Sexe">
+  <input type="text" id="naissanceInput" placeholder="Né(e) le">
   <input type="text" id="tailleInput" placeholder="Taille">
-  <input type="text" id="adresseInput" placeholder="Adresse complète">
+  <input type="text" id="signatureInput" placeholder="Signature manuscrite">
   <input type="file" id="photoInput" accept="image/*">
 </div>
 
-<div id="idCard">
-  <div class="field photo" id="photoPreview"><img src="" alt="Photo"></div>
-  <div class="field prenom" id="prenom"></div>
-  <div class="field nom" id="nom"></div>
-  <div class="field naissance" id="naissance"></div>
-  <div class="field sexe" id="sexe"></div>
-  <div class="field taille" id="taille"></div>
-  <div class="field adresse" id="adresse"></div>
+<!-- Carte -->
+<div id="carte">
+  <div class="champ" id="numero"></div>
+  <div class="champ" id="nom"></div>
+  <div class="champ" id="prenom"></div>
+  <div class="champ" id="sexe"></div>
+  <div class="champ" id="naissance"></div>
+  <div class="champ" id="taille"></div>
+  <div class="champ signature" id="signature"></div>
+  <div class="champ" id="photo"><img src=""></div>
 </div>
 
+<!-- Bouton téléchargement -->
 <button id="download">📥 Télécharger la carte</button>
 
-<!-- html2canvas pour capture image -->
+<!-- Script html2canvas + gestion -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-  const prenomInput = document.getElementById('prenomInput');
-  const nomInput = document.getElementById('nomInput');
-  const naissanceInput = document.getElementById('naissanceInput');
-  const sexeInput = document.getElementById('sexeInput');
-  const tailleInput = document.getElementById('tailleInput');
-  const adresseInput = document.getElementById('adresseInput');
-  const photoInput = document.getElementById('photoInput');
+  // Champs dynamiques
+  const champs = ['numero', 'nom', 'prenom', 'sexe', 'naissance', 'taille', 'signature'];
+  champs.forEach(champ => {
+    document.getElementById(champ + 'Input').addEventListener('input', e => {
+      document.getElementById(champ).innerText = e.target.value;
+    });
+  });
 
-  function updateCard() {
-    document.getElementById('prenom').innerText = prenomInput.value;
-    document.getElementById('nom').innerText = nomInput.value;
-    document.getElementById('naissance').innerText = naissanceInput.value;
-    document.getElementById('sexe').innerText = sexeInput.value;
-    document.getElementById('taille').innerText = tailleInput.value;
-    document.getElementById('adresse').innerText = adresseInput.value;
-  }
-
-  prenomInput.addEventListener('input', updateCard);
-  nomInput.addEventListener('input', updateCard);
-  naissanceInput.addEventListener('input', updateCard);
-  sexeInput.addEventListener('input', updateCard);
-  tailleInput.addEventListener('input', updateCard);
-  adresseInput.addEventListener('input', updateCard);
-
-  photoInput.addEventListener('change', () => {
-    const file = photoInput.files[0];
+  // Photo
+  document.getElementById('photoInput').addEventListener('change', function() {
+    const file = this.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = function(e) {
-        document.querySelector('#photoPreview img').src = e.target.result;
+        document.querySelector('#photo img').src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
   });
 
+  // Télécharger
   document.getElementById('download').addEventListener('click', () => {
-    html2canvas(document.getElementById("idCard")).then(canvas => {
+    html2canvas(document.getElementById("carte")).then(canvas => {
       const link = document.createElement("a");
-      link.download = "carte_identite.png";
+      link.download = "carte_identite.PNG";
       link.href = canvas.toDataURL();
       link.click();
     });
   });
 </script>
+
 </body>
 </html>
