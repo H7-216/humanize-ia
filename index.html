@@ -2,262 +2,131 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Futur Slope Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slope 3D Mockup</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: 'Arial', sans-serif;
-      background: black;
-    }
-
-    canvas {
-      display: none;
-      background: radial-gradient(circle at center, #111 0%, #000 100%);
-    }
-
-    #startScreen, #gameOver {
-      position: absolute;
-      top: 30%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #0f0;
-      text-align: center;
-    }
-
-    #startBtn, #restartBtn {
-      margin-top: 20px;
-      padding: 12px 25px;
-      font-size: 22px;
-      background-color: #0f0;
-      color: #000;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    #touchControls {
-      position: absolute;
-      bottom: 10px;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 50px;
-      z-index: 2;
-    }
-
-    .touch-btn {
-      width: 80px;
-      height: 80px;
-      background: #0f0;
-      opacity: 0.5;
-      border-radius: 50%;
-      font-size: 30px;
-      color: black;
-      text-align: center;
-      line-height: 80px;
-      user-select: none;
-    }
-
-    @media (min-width: 800px) {
-      #touchControls { display: none; }
-    }
+    body { margin:0; background:#000; overflow:hidden; }
+    canvas { display:block; }
   </style>
 </head>
 <body>
-  <!-- Écran d'accueil -->
-  <div id="startScreen">
-    <h1>🎮 Slope Futuriste</h1>
-    <button id="startBtn">Jouer</button>
-  </div>
-
-  <!-- Canvas du jeu -->
-  <canvas id="gameCanvas"></canvas>
-
-  <!-- Contrôles tactiles -->
-  <div id="touchControls">
-    <div class="touch-btn" id="leftBtn">◀</div>
-    <div class="touch-btn" id="rightBtn">▶</div>
-  </div>
-
-  <!-- Game Over -->
-  <div id="gameOver" style="display:none;">
-    <p>💥 Game Over 💥<br>Score : <span id="finalScore">0</span></p>
-    <button id="restartBtn">Recommencer</button>
-  </div>
-
-  <!-- Audio -->
-  <audio id="bgMusic" loop>
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3ce1e1a61b.mp3?filename=the-epic-11828.mp3" type="audio/mp3">
-  </audio>
-
-  <audio id="hitSound">
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/22/audio_56fa735b25.mp3?filename=error-126627.mp3" type="audio/mp3">
-  </audio>
-
+  <canvas id="c"></canvas>
   <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const startBtn = document.getElementById("startBtn");
-    const startScreen = document.getElementById("startScreen");
-    const gameOverDiv = document.getElementById("gameOver");
-    const finalScore = document.getElementById("finalScore");
-    const restartBtn = document.getElementById("restartBtn");
-    const bgMusic = document.getElementById("bgMusic");
-    const hitSound = document.getElementById("hitSound");
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W, H, cx, cy;
 
-    const leftBtn = document.getElementById("leftBtn");
-    const rightBtn = document.getElementById("rightBtn");
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cx = W / 2;
+    cy = H / 2 + 100;
+  }
+  window.addEventListener('resize', resize);
+  resize();
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+  // Paramètres
+  const focalLength = 300;
+  let speed = 0;
+  let acceleration = 0.0005;
+  let playerX = 0;
+  let maxX = 200;
+  let platforms = [];
+  const platformCount = 200;
 
-    let ball, tiles, keys, speed, score, gameRunning;
-    let gravity = 0.5;
-    let velocityY = 0;
-    let isOnGround = false;
+  // Création initiale des plateformes
+  for(let i=0; i<platformCount; i++){
+    platforms.push({
+      x: (Math.random()*2 -1) * maxX,
+      z: i * 20,
+      gap: Math.random() < 0.1, // trou
+      obstacle: Math.random() < 0.08
+    });
+  }
 
-    function init() {
-      ball = {
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        radius: 15
-      };
+  // Contrôles
+  const keys = {};
+  window.addEventListener('keydown', e=>keys[e.key]=1);
+  window.addEventListener('keyup', e=>keys[e.key]=0);
 
-      keys = {};
-      speed = 4;
-      score = 0;
-      velocityY = 0;
-      gameRunning = true;
-
-      tiles = [];
-      for (let i = 0; i < 40; i++) {
-        tiles.push({
-          x: Math.random() * (canvas.width - 200),
-          y: i * -40,
-          width: 200,
-          height: 40
-        });
-      }
-
-      gameOverDiv.style.display = "none";
-      animate();
-    }
-
-    document.addEventListener("keydown", (e) => keys[e.key] = true);
-    document.addEventListener("keyup", (e) => keys[e.key] = false);
-
-    // Touch events
-    leftBtn.addEventListener("touchstart", () => keys["ArrowLeft"] = true);
-    leftBtn.addEventListener("touchend", () => keys["ArrowLeft"] = false);
-    rightBtn.addEventListener("touchstart", () => keys["ArrowRight"] = true);
-    rightBtn.addEventListener("touchend", () => keys["ArrowRight"] = false);
-
-    startBtn.onclick = () => {
-      startScreen.style.display = "none";
-      canvas.style.display = "block";
-      document.getElementById("touchControls").style.display = "flex";
-      bgMusic.play();
-      init();
-    };
-
-    restartBtn.onclick = () => {
-      canvas.style.display = "block";
-      document.getElementById("touchControls").style.display = "flex";
-      init();
-    };
-
-    function drawBall() {
-      ctx.beginPath();
-      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#00ff99";
-      ctx.shadowColor = "#0f0";
-      ctx.shadowBlur = 20;
-      ctx.fill();
-      ctx.closePath();
-    }
-
-    function drawTiles() {
-      ctx.fillStyle = "#222";
-      tiles.forEach(tile => {
-        ctx.shadowColor = "#0f0";
-        ctx.shadowBlur = 10;
-        ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
-      });
-    }
-
-    function moveBall() {
-      if (keys["ArrowLeft"]) ball.x -= 7;
-      if (keys["ArrowRight"]) ball.x += 7;
-
-      velocityY += gravity;
-      ball.y += velocityY;
-      isOnGround = false;
-    }
-
-    function updateTiles() {
-      for (let tile of tiles) {
-        tile.y += speed;
-
-        if (ball.x + ball.radius > tile.x && ball.x - ball.radius < tile.x + tile.width &&
-            ball.y + ball.radius > tile.y && ball.y + ball.radius < tile.y + tile.height) {
-          ball.y = tile.y - ball.radius;
-          velocityY = 0;
-          isOnGround = true;
+  // Collision detection basique
+  function checkCollision(){
+    for(let p of platforms){
+      if(p.z < speed+10 && p.z > speed-10){
+        const scale = focalLength / (p.z - speed + focalLength);
+        const px = cx + p.x * scale;
+        const pw = maxX * scale;
+        if(!p.gap){
+          if(playerX*scale > p.x*scale - pw && playerX*scale < p.x*scale + pw){
+            if(p.obstacle){
+              // touche obstacle
+              return true;
+            }
+            return false;
+          }
         }
-      }
-
-      if (tiles[tiles.length - 1].y > 0) {
-        tiles.push({
-          x: Math.random() * (canvas.width - 200),
-          y: tiles[tiles.length - 1].y - 40,
-          width: 200,
-          height: 40
-        });
-      }
-
-      if (tiles[0].y > canvas.height) {
-        tiles.shift();
-        score++;
-        speed += 0.05;
+        return true; // tombe dans le trou
       }
     }
+    return false;
+  }
 
-    function drawScore() {
-      ctx.fillStyle = "#0f0";
-      ctx.font = "24px Arial";
-      ctx.fillText("Score : " + score, 20, 40);
-    }
+  // Boucle
+  function loop(ts){
+    ctx.clearRect(0,0,W,H);
+    speed += acceleration * ts;
+    if(keys['ArrowLeft']) playerX -= 0.3 * ts;
+    if(keys['ArrowRight']) playerX += 0.3 * ts;
+    playerX = Math.max(-maxX, Math.min(maxX, playerX));
 
-    function gameOver() {
-      gameRunning = false;
-      finalScore.textContent = score;
-      canvas.style.display = "none";
-      document.getElementById("touchControls").style.display = "none";
-      gameOverDiv.style.display = "block";
-      hitSound.play();
-    }
-
-    function animate() {
-      if (!gameRunning) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      moveBall();
-      updateTiles();
-      drawTiles();
-      drawBall();
-      drawScore();
-
-      if (ball.y > canvas.height || ball.x < 0 || ball.x > canvas.width) {
-        gameOver();
-        return;
+    // Dessin plateformes
+    platforms.forEach(p=>{
+      const dz = p.z - speed;
+      if(dz < 1) return;
+      const scale = focalLength / dz;
+      const px = cx + p.x * scale;
+      const py = cy + dz * scale;
+      const pw = maxX * scale;
+      const ph = 10 * scale;
+      if(dz > 0){
+        ctx.fillStyle = p.obstacle ? '#f00' : (p.gap ? '#333' : '#444');
+        ctx.fillRect(px - pw, py, pw*2, ph);
       }
+    });
 
-      requestAnimationFrame(animate);
+    // Dessin balle
+    const ballZ = 10;
+    const ballScale = focalLength / (ballZ);
+    const ballX2 = cx + playerX * ballScale;
+    const ballY2 = cy + ballZ * ballScale;
+    const ballR = 15 * ballScale;
+    ctx.beginPath();
+    ctx.arc(ballX2, ballY2, ballR, 0, 2*Math.PI);
+    ctx.fillStyle = '#0f0';
+    ctx.shadowColor = '#0f0';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+
+    // Vérifier collision ou chute
+    if(checkCollision()){
+      return gameOver();
     }
+
+    requestAnimationFrame(loop);
+  }
+
+  function gameOver(){
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#fff';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', cx, cy);
+    // reload après 2s
+    setTimeout(()=>location.reload(), 2000);
+  }
+
+  requestAnimationFrame(loop);
   </script>
 </body>
 </html>
