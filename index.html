@@ -115,18 +115,21 @@
     canvas.height = window.innerHeight;
 
     let ball, tiles, keys, speed, score, gameRunning;
+    let gravity = 0.5;
+    let velocityY = 0;
+    let isOnGround = false;
 
     function init() {
       ball = {
         x: canvas.width / 2,
         y: canvas.height / 2,
-        radius: 15,
-        speedY: 4
+        radius: 15
       };
 
       keys = {};
       speed = 4;
       score = 0;
+      velocityY = 0;
       gameRunning = true;
 
       tiles = [];
@@ -188,21 +191,24 @@
     function moveBall() {
       if (keys["ArrowLeft"]) ball.x -= 7;
       if (keys["ArrowRight"]) ball.x += 7;
-      ball.y += ball.speedY;
+
+      velocityY += gravity;
+      ball.y += velocityY;
+      isOnGround = false;
     }
 
     function updateTiles() {
       for (let tile of tiles) {
         tile.y += speed;
 
-        // Collision
-        if (ball.x > tile.x && ball.x < tile.x + tile.width &&
+        if (ball.x + ball.radius > tile.x && ball.x - ball.radius < tile.x + tile.width &&
             ball.y + ball.radius > tile.y && ball.y + ball.radius < tile.y + tile.height) {
           ball.y = tile.y - ball.radius;
+          velocityY = 0;
+          isOnGround = true;
         }
       }
 
-      // Ajoute nouveau
       if (tiles[tiles.length - 1].y > 0) {
         tiles.push({
           x: Math.random() * (canvas.width - 200),
