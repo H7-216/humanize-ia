@@ -1,672 +1,131 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Humanizer Pro - Powered by OpenAI</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <title>محرر النص العربي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Amiri', serif;
+      background: #f0f0f0;
+      color: #333;
+      padding: 20px;
+      direction: rtl;
+      text-align: right;
+    }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-            overflow-x: hidden;
-        }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+    textarea {
+      width: 100%;
+      height: 300px;
+      font-size: 1.4em;
+      padding: 15px;
+      box-sizing: border-box;
+      border: 2px solid #aaa;
+      border-radius: 10px;
+      background-color: #fff;
+      resize: none;
+      font-family: 'Amiri', serif;
+    }
 
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-            animation: fadeInUp 0.8s ease-out;
-        }
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
 
-        .logo {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-        }
+    button {
+      background-color: #008CBA;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
 
-        .subtitle {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
+    button:hover {
+      background-color: #005f75;
+    }
 
-        .description {
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.7);
-            max-width: 600px;
-            margin: 0 auto;
-        }
+    .dark-mode {
+      background: #121212;
+      color: #eee;
+    }
 
-        .api-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
+    .dark-mode textarea {
+      background: #1e1e1e;
+      color: #eee;
+      border-color: #444;
+    }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #00d4aa;
-            animation: pulse 2s infinite;
-        }
+    .dark-mode button {
+      background-color: #444;
+    }
 
-        .main-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 2.5rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: slideInUp 0.8s ease-out 0.2s both;
-        }
-
-        .input-section {
-            margin-bottom: 2rem;
-        }
-
-        .input-label {
-            display: block;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-            font-size: 1.1rem;
-        }
-
-        .text-input {
-            width: 100%;
-            min-height: 200px;
-            padding: 1.5rem;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 1rem;
-            font-family: inherit;
-            resize: vertical;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .text-input:focus {
-            outline: none;
-            border-color: #ff6b6b;
-            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .text-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .buttons-container {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 200px;
-            padding: 1.2rem 2rem;
-            border: none;
-            border-radius: 16px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn-check {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-        }
-
-        .btn-check:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
-        }
-
-        .btn-humanize {
-            background: linear-gradient(45deg, #5f27cd, #341f97);
-            color: white;
-            box-shadow: 0 8px 25px rgba(95, 39, 205, 0.3);
-        }
-
-        .btn-humanize:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(95, 39, 205, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1.1rem;
-            margin: 1rem 0;
-        }
-
-        .loading.visible {
-            display: block;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s linear infinite;
-            margin-right: 0.5rem;
-        }
-
-        .output-section {
-            margin-top: 2rem;
-            opacity: 0;
-            transition: all 0.5s ease;
-        }
-
-        .output-section.visible {
-            opacity: 1;
-        }
-
-        .output-label {
-            display: block;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-            font-size: 1.1rem;
-        }
-
-        .output-box {
-            width: 100%;
-            min-height: 150px;
-            padding: 1.5rem;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 1rem;
-            font-family: inherit;
-            backdrop-filter: blur(10px);
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-            opacity: 0;
-            transition: all 0.5s ease;
-        }
-
-        .stats.visible {
-            opacity: 1;
-        }
-
-        .stat-item {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 12px;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #ff6b6b;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            margin-top: 0.2rem;
-        }
-
-        .error-message {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-            padding: 1rem;
-            border-radius: 12px;
-            margin: 1rem 0;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            display: none;
-        }
-
-        .error-message.visible {
-            display: block;
-        }
-
-        .copy-btn {
-            background: linear-gradient(45deg, #00d4aa, #00b894);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-        }
-
-        .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 212, 170, 0.3);
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .logo {
-                font-size: 2rem;
-            }
-
-            .main-card {
-                padding: 1.5rem;
-            }
-
-            .buttons-container {
-                flex-direction: column;
-            }
-
-            .btn {
-                min-width: auto;
-            }
-        }
-    </style>
+    .dark-mode button:hover {
+      background-color: #666;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="logo">AI Humanizer Pro</h1>
-            <p class="subtitle">Powered by OpenAI - Humanisation intelligente</p>
-            <p class="description">Détection et humanisation avancées utilisant l'API OpenAI pour des résultats professionnels</p>
-            <div class="api-status">
-                <div class="status-dot"></div>
-                <span>API OpenAI connectée</span>
-            </div>
-        </div>
+  <h1>محرر النص العربي</h1>
 
-        <div class="main-card">
-            <div class="input-section">
-                <label class="input-label">📝 Texte à analyser/humaniser</label>
-                <textarea class="text-input" id="inputText" placeholder="Collez votre texte ici pour l'analyser ou l'humaniser...">Il est important de noter que l'intelligence artificielle représente une révolution technologique majeure. En conclusion, cette technologie transforme de nombreux secteurs. Par conséquent, il convient d'analyser ses implications. Néanmoins, certains défis persistent. Cependant, les avantages sont considérables. De plus, l'innovation continue à progresser rapidement dans ce domaine.</textarea>
-            </div>
+  <textarea id="arabicText" placeholder="اكتب النص العربي هنا..."></textarea>
 
-            <div class="buttons-container">
-                <button class="btn btn-check" id="checkBtn" type="button">
-                    🔍 Analyser avec IA
-                </button>
-                <button class="btn btn-humanize" id="humanizeBtn" type="button">
-                    🤖➡️👤 Humaniser avec IA
-                </button>
-            </div>
+  <div class="buttons">
+    <button onclick="printText()">🖨️ طباعة</button>
+    <button onclick="downloadText()">💾 تحميل</button>
+    <button onclick="copyText()">📋 نسخ</button>
+    <button onclick="clearText()">♻️ مسح</button>
+    <button onclick="toggleMode()">🌙/☀️ الوضع الليلي</button>
+  </div>
 
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <span id="loadingText">Traitement en cours...</span>
-            </div>
+  <script>
+    function printText() {
+      const text = document.getElementById('arabicText').value;
+      const printWindow = window.open('', '', 'height=600,width=800');
+      printWindow.document.write('<html dir="rtl"><head><title>طباعة</title>');
+      printWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">');
+      printWindow.document.write('<style>body{font-family: "Amiri", serif; direction: rtl; font-size: 1.5em; padding: 20px;}</style>');
+      printWindow.document.write('</head><body>');
+      printWindow.document.write(text.replace(/\n/g, '<br>'));
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+    }
 
-            <div class="error-message" id="errorMessage"></div>
+    function downloadText() {
+      const text = document.getElementById('arabicText').value;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'arabic_text.txt';
+      link.click();
+    }
 
-            <div class="output-section" id="outputSection">
-                <label class="output-label">✨ Résultat</label>
-                <div class="output-box" id="outputBox"></div>
-                <button class="copy-btn" id="copyBtn" type="button" style="display: none;">📋 Copier le résultat</button>
-                
-                <div class="stats" id="stats">
-                    <div class="stat-item">
-                        <span class="stat-value" id="aiScore">0%</span>
-                        <span class="stat-label">Détection IA</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="humanScore">0%</span>
-                        <span class="stat-label">Score Humain</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="wordCount">0</span>
-                        <span class="stat-label">Mots</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="tokensUsed">0</span>
-                        <span class="stat-label">Tokens utilisés</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    function copyText() {
+      const textArea = document.getElementById('arabicText');
+      textArea.select();
+      document.execCommand('copy');
+      alert("✅ تم نسخ النص!");
+    }
 
-    <script>
-        class AIHumanizerPro {
-            constructor() {
-                // Clé API OpenAI (masquée pour la sécurité)
-                this.apiKey = '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';
-                this.apiUrl = 'https://api.openai.com/v1/chat/completions';
-                this.initElements();
-                this.initEventListeners();
-                this.updateWordCount();
-            }
+    function clearText() {
+      document.getElementById('arabicText').value = '';
+    }
 
-            initElements() {
-                this.inputText = document.getElementById('inputText');
-                this.checkBtn = document.getElementById('checkBtn');
-                this.humanizeBtn = document.getElementById('humanizeBtn');
-                this.loading = document.getElementById('loading');
-                this.loadingText = document.getElementById('loadingText');
-                this.outputSection = document.getElementById('outputSection');
-                this.outputBox = document.getElementById('outputBox');
-                this.copyBtn = document.getElementById('copyBtn');
-                this.stats = document.getElementById('stats');
-                this.aiScore = document.getElementById('aiScore');
-                this.humanScore = document.getElementById('humanScore');
-                this.wordCount = document.getElementById('wordCount');
-                this.tokensUsed = document.getElementById('tokensUsed');
-                this.errorMessage = document.getElementById('errorMessage');
-            }
-
-            initEventListeners() {
-                this.checkBtn.addEventListener('click', () => this.analyzeText());
-                this.humanizeBtn.addEventListener('click', () => this.humanizeText());
-                this.copyBtn.addEventListener('click', () => this.copyResult());
-                this.inputText.addEventListener('input', () => this.updateWordCount());
-            }
-
-            async analyzeText() {
-                const text = this.inputText.value.trim();
-                
-                if (!text) {
-                    this.showError('Veuillez saisir un texte à analyser');
-                    return;
-                }
-
-                this.showLoading('Analyse du texte avec OpenAI...');
-
-                try {
-                    const prompt = `Analyse ce texte et détermine s'il a été généré par une IA. 
-
-Texte à analyser: "${text}"
-
-Donne ta réponse au format suivant:
-- Score IA (0-100): [score]
-- Indicateurs détectés: [liste des patterns suspects]
-- Analyse détaillée: [explication complète]
-- Recommandations: [conseils d'amélioration]
-
-Sois précis et détaillé dans ton analyse.`;
-
-                    const response = await this.callOpenAI(prompt);
-                    
-                    if (response.success) {
-                        this.displayAnalysisResult(response.content, text);
-                    } else {
-                        this.showError('Erreur lors de l\'analyse: ' + response.error);
-                    }
-                } catch (error) {
-                    this.showError('Erreur de connexion: ' + error.message);
-                }
-
-                this.hideLoading();
-            }
-
-            async humanizeText() {
-                const text = this.inputText.value.trim();
-                
-                if (!text) {
-                    this.showError('Veuillez saisir un texte à humaniser');
-                    return;
-                }
-
-                this.showLoading('Humanisation du texte avec OpenAI...');
-
-                try {
-                    const prompt = `Tu es un expert en rédaction humaine. Réécris complètement ce texte pour qu'il semble totalement naturel et humain, en évitant tous les patterns typiques de l'IA.
-
-Texte à humaniser: "${text}"
-
-Instructions:
-1. Réécris TOUT le paragraphe avec un style naturel et conversationnel
-2. Évite les formulations trop formelles ou académiques
-3. Utilise un vocabulaire varié et des expressions personnelles
-4. Ajoute des nuances, des hésitations, des opinions personnelles
-5. Varie la longueur et la structure des phrases
-6. Rends le texte plus authentique et humain
-7. Garde le même sens mais change complètement la forme
-
-Réponds uniquement avec le texte humanisé, sans commentaires.`;
-
-                    const response = await this.callOpenAI(prompt);
-                    
-                    if (response.success) {
-                        this.displayHumanizationResult(response.content, text);
-                    } else {
-                        this.showError('Erreur lors de l\'humanisation: ' + response.error);
-                    }
-                } catch (error) {
-                    this.showError('Erreur de connexion: ' + error.message);
-                }
-
-                this.hideLoading();
-            }
-
-            async callOpenAI(prompt) {
-                try {
-                    const response = await fetch(this.apiUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${this.apiKey}`
-                        },
-                        body: JSON.stringify({
-                            model: 'gpt-3.5-turbo',
-                            messages: [
-                                {
-                                    role: 'system',
-                                    content: 'Tu es un expert en détection et humanisation de texte IA. Tu donnes des analyses précises et des humanisations naturelles.'
-                                },
-                                {
-                                    role: 'user',
-                                    content: prompt
-                                }
-                            ],
-                            max_tokens: 1500,
-                            temperature: 0.7
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`API Error: ${errorData.error?.message || 'Unknown error'}`);
-                    }
-
-                    const data = await response.json();
-                    
-                    return {
-                        success: true,
-                        content: data.choices[0].message.content,
-                        tokensUsed: data.usage?.total_tokens || 0
-                    };
-                } catch (error) {
-                    return {
-                        success: false,
-                        error: error.message
-                    };
-                }
-            }
-
-            displayAnalysisResult(content, originalText) {
-                this.outputBox.textContent = content;
-                
-                // Extraction du score IA du contenu
-                const scoreMatch = content.match(/Score IA \(0-100\): (\d+)/);
-                const aiScoreValue = scoreMatch ? parseInt(scoreMatch[1]) : 50;
-                
-                this.aiScore.textContent = `${aiScoreValue}%`;
-                this.humanScore.textContent = `${100 - aiScoreValue}%`;
-                this.wordCount.textContent = originalText.split(/\s+/).length;
-                this.tokensUsed.textContent = Math.floor(originalText.length / 4);
-                
-                this.showResult();
-            }
-
-            displayHumanizationResult(humanizedText, originalText) {
-                this.outputBox.textContent = humanizedText;
-                
-                // Scores améliorés après humanisation
-                this.aiScore.textContent = `${Math.floor(Math.random() * 15 + 5)}%`;
-                this.humanScore.textContent = `${Math.floor(Math.random() * 10 + 85)}%`;
-                this.wordCount.textContent = humanizedText.split(/\s+/).length;
-                this.tokensUsed.textContent = Math.floor(humanizedText.length / 3);
-                
-                this.copyBtn.style.display = 'block';
-                this.showResult();
-            }
-
-            showResult() {
-                this.outputSection.classList.add('visible');
-                this.stats.classList.add('visible');
-                this.hideError();
-            }
-
-            copyResult() {
-                const text = this.outputBox.textContent;
-                navigator.clipboard.writeText(text).then(() => {
-                    this.copyBtn.textContent = '✅ Copié!';
-                    setTimeout(() => {
-                        this.copyBtn.textContent = '📋 Copier le résultat';
-                    }, 2000);
-                });
-            }
-
-            showLoading(message) {
-                this.loadingText.textContent = message;
-                this.loading.classList.add('visible');
-                this.checkBtn.disabled = true;
-                this.humanizeBtn.disabled = true;
-                this.hideError();
-            }
-
-            hideLoading() {
-                this.loading.classList.remove('visible');
-                this.checkBtn.disabled = false;
-                this.humanizeBtn.disabled = false;
-            }
-
-            showError(message) {
-                this.errorMessage.textContent = message;
-                this.errorMessage.classList.add('visible');
-            }
-
-            hideError() {
-                this.errorMessage.classList.remove('visible');
-            }
-
-            updateWordCount() {
-                const text = this.inputText.value;
-                const count = text.trim() ? text.split(/\s+/).length : 0;
-                this.wordCount.textContent = count;
-            }
-        }
-
-        // Initialisation de l'application
-        document.addEventListener('DOMContentLoaded', () => {
-            new AIHumanizerPro();
-        });
-    </script>
+    function toggleMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+  </script>
 </body>
 </html>
