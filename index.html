@@ -2,131 +2,138 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Slope 3D Mockup</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Slope 3D - Version Three.js</title>
   <style>
-    body { margin:0; background:#000; overflow:hidden; }
-    canvas { display:block; }
+    body { margin: 0; overflow: hidden; background: black; }
+    canvas { display: block; }
   </style>
 </head>
 <body>
-  <canvas id="c"></canvas>
-  <script>
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
-  let W, H, cx, cy;
+<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
+<script>
+  let scene, camera, renderer, ball, track = [], speed = 0.2, maxLanes = 5;
+  let trackSegments = 100, segmentLength = 20, lanes = [-4, -2, 0, 2, 4];
+  let obstacles = [];
+  let clock = new THREE.Clock();
 
-  function resize(){
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    cx = W / 2;
-    cy = H / 2 + 100;
-  }
-  window.addEventListener('resize', resize);
-  resize();
+  init();
+  animate();
 
-  // Paramètres
-  const focalLength = 300;
-  let speed = 0;
-  let acceleration = 0.0005;
-  let playerX = 0;
-  let maxX = 200;
-  let platforms = [];
-  const platformCount = 200;
+  function init() {
+    // Scène et caméra
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 5, 10);
 
-  // Création initiale des plateformes
-  for(let i=0; i<platformCount; i++){
-    platforms.push({
-      x: (Math.random()*2 -1) * maxX,
-      z: i * 20,
-      gap: Math.random() < 0.1, // trou
-      obstacle: Math.random() < 0.08
-    });
-  }
+    // Lumière
+    const light = new THREE.PointLight(0xffffff, 1);
+    light.position.set(0, 10, 10);
+    scene.add(light);
 
-  // Contrôles
-  const keys = {};
-  window.addEventListener('keydown', e=>keys[e.key]=1);
-  window.addEventListener('keyup', e=>keys[e.key]=0);
+    // Renderer
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-  // Collision detection basique
-  function checkCollision(){
-    for(let p of platforms){
-      if(p.z < speed+10 && p.z > speed-10){
-        const scale = focalLength / (p.z - speed + focalLength);
-        const px = cx + p.x * scale;
-        const pw = maxX * scale;
-        if(!p.gap){
-          if(playerX*scale > p.x*scale - pw && playerX*scale < p.x*scale + pw){
-            if(p.obstacle){
-              // touche obstacle
-              return true;
-            }
-            return false;
-          }
-        }
-        return true; // tombe dans le trou
-      }
-    }
-    return false;
-  }
-
-  // Boucle
-  function loop(ts){
-    ctx.clearRect(0,0,W,H);
-    speed += acceleration * ts;
-    if(keys['ArrowLeft']) playerX -= 0.3 * ts;
-    if(keys['ArrowRight']) playerX += 0.3 * ts;
-    playerX = Math.max(-maxX, Math.min(maxX, playerX));
-
-    // Dessin plateformes
-    platforms.forEach(p=>{
-      const dz = p.z - speed;
-      if(dz < 1) return;
-      const scale = focalLength / dz;
-      const px = cx + p.x * scale;
-      const py = cy + dz * scale;
-      const pw = maxX * scale;
-      const ph = 10 * scale;
-      if(dz > 0){
-        ctx.fillStyle = p.obstacle ? '#f00' : (p.gap ? '#333' : '#444');
-        ctx.fillRect(px - pw, py, pw*2, ph);
-      }
-    });
-
-    // Dessin balle
-    const ballZ = 10;
-    const ballScale = focalLength / (ballZ);
-    const ballX2 = cx + playerX * ballScale;
-    const ballY2 = cy + ballZ * ballScale;
-    const ballR = 15 * ballScale;
-    ctx.beginPath();
-    ctx.arc(ballX2, ballY2, ballR, 0, 2*Math.PI);
-    ctx.fillStyle = '#0f0';
-    ctx.shadowColor = '#0f0';
-    ctx.shadowBlur = 10;
-    ctx.fill();
-
-    // Vérifier collision ou chute
-    if(checkCollision()){
-      return gameOver();
+    // Sol de base
+    const trackMat = new THREE.MeshPhongMaterial({color: 0x111111});
+    for (let i = 0; i < trackSegments; i++) {
+      const trackPart = new THREE.Mesh(
+        new THREE.BoxGeometry(10, 0.5, segmentLength),
+        trackMat
+      );
+      trackPart.position.z = -i * segmentLength;
+      track.push(trackPart);
+      scene.add(trackPart);
     }
 
-    requestAnimationFrame(loop);
+    // Balle
+    const ballGeo = new THREE.SphereGeometry(0.5, 32, 32);
+    const ballMat = new THREE.MeshStandardMaterial({color: 0x00ff00, emissive: 0x00ff00});
+    ball = new THREE.Mesh(ballGeo, ballMat);
+    ball.position.y = 1;
+    scene.add(ball);
+
+    // Obstacles initiaux
+    for (let i = 10; i < trackSegments; i += 5) {
+      spawnObstacle(-i * segmentLength);
+    }
+
+    // Événements clavier
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener('resize', onResize);
   }
 
-  function gameOver(){
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle = '#fff';
-    ctx.font = '30px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Game Over', cx, cy);
-    // reload après 2s
-    setTimeout(()=>location.reload(), 2000);
+  function spawnObstacle(z) {
+    const lane = lanes[Math.floor(Math.random() * lanes.length)];
+    const obstacle = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0xff0000})
+    );
+    obstacle.position.set(lane, 0.75, z);
+    scene.add(obstacle);
+    obstacles.push(obstacle);
   }
 
-  requestAnimationFrame(loop);
-  </script>
+  function onKeyDown(e) {
+    if (e.key === "ArrowLeft" || e.key === "a") {
+      ball.position.x -= 2;
+      if (ball.position.x < -4) ball.position.x = -4;
+    }
+    if (e.key === "ArrowRight" || e.key === "d") {
+      ball.position.x += 2;
+      if (ball.position.x > 4) ball.position.x = 4;
+    }
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+
+    // Bouger la piste
+    for (let part of track) {
+      part.position.z += speed;
+      if (part.position.z > 10) {
+        part.position.z -= trackSegments * segmentLength;
+      }
+    }
+
+    // Bouger les obstacles
+    for (let o of obstacles) {
+      o.position.z += speed;
+      if (o.position.z > 10) {
+        o.position.z = -trackSegments * segmentLength;
+        o.position.x = lanes[Math.floor(Math.random() * lanes.length)];
+      }
+    }
+
+    // Collision
+    for (let o of obstacles) {
+      if (Math.abs(ball.position.z - o.position.z) < 1 &&
+          Math.abs(ball.position.x - o.position.x) < 1) {
+        alert("💥 Game Over !");
+        window.location.reload();
+      }
+    }
+
+    // Avancer la balle (visuellement le monde recule)
+    ball.position.z += speed;
+
+    // Caméra suit la balle
+    camera.position.z = ball.position.z + 10;
+    camera.lookAt(ball.position.x, ball.position.y, ball.position.z);
+
+    // Augmenter la vitesse lentement
+    speed += 0.0002;
+
+    renderer.render(scene, camera);
+  }
+
+  function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+</script>
 </body>
 </html>
