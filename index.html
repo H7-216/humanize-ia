@@ -1,216 +1,257 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Snaply - Ton Monde en Snap</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Futur Slope Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
+    html, body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #ffe600;
-      color: #000;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Arial', sans-serif;
+      background: black;
     }
-    header {
-      background: #000;
-      color: #ffe600;
-      padding: 1em;
+
+    canvas {
+      display: none;
+      background: radial-gradient(circle at center, #111 0%, #000 100%);
+    }
+
+    #startScreen, #gameOver {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #0f0;
       text-align: center;
     }
-    nav a {
-      margin: 0 10px;
-      color: #ffe600;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    main {
-      padding: 2em;
-    }
-    .btn {
-      background: #000;
-      color: #ffe600;
-      padding: 10px 20px;
+
+    #startBtn, #restartBtn {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 22px;
+      background-color: #0f0;
+      color: #000;
       border: none;
       cursor: pointer;
-      margin-top: 10px;
-    }
-    .chat-box, .story-box, .profile-box {
-      margin-top: 2em;
-      padding: 1em;
-      background: white;
-      border-radius: 8px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .message, .story {
-      padding: 8px;
-      background: #f4f4f4;
       border-radius: 6px;
-      margin-bottom: 5px;
+    }
+
+    #touchControls {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 50px;
+      z-index: 2;
+    }
+
+    .touch-btn {
+      width: 80px;
+      height: 80px;
+      background: #0f0;
+      opacity: 0.5;
+      border-radius: 50%;
+      font-size: 30px;
+      color: black;
+      text-align: center;
+      line-height: 80px;
+      user-select: none;
+    }
+
+    @media (min-width: 800px) {
+      #touchControls { display: none; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Snaply</h1>
-    <nav>
-      <a href="#accueil">Accueil</a>
-      <a href="#chat">Discuter</a>
-      <a href="#stories">Stories</a>
-      <a href="#profil">Profil</a>
-    </nav>
-  </header>
+  <!-- Écran d'accueil -->
+  <div id="startScreen">
+    <h1>🎮 Slope Futuriste</h1>
+    <button id="startBtn">Jouer</button>
+  </div>
 
-  <main>
-    <section id="accueil">
-      <h2>Bienvenue sur Snaply</h2>
-      <p>Exprime-toi avec des snaps et des stories !</p>
-      <button class="btn" onclick="scrollToSection('chat')">Commencer à discuter</button>
-    </section>
+  <!-- Canvas du jeu -->
+  <canvas id="gameCanvas"></canvas>
 
-    <section id="chat" class="chat-box">
-      <h3>💬 Discuter</h3>
-      <div id="messages"></div>
-      <textarea id="messageInput" placeholder="Écris ton message..."></textarea>
-      <button class="btn" onclick="sendMessage()">Envoyer</button>
-    </section>
+  <!-- Contrôles tactiles -->
+  <div id="touchControls">
+    <div class="touch-btn" id="leftBtn">◀</div>
+    <div class="touch-btn" id="rightBtn">▶</div>
+  </div>
 
-    <section id="stories" class="story-box">
-      <h3>📸 Stories</h3>
-      <input type="file" id="storyInput" />
-      <button class="btn" onclick="uploadStory()">Ajouter une story</button>
-      <div id="storyList"></div>
-    </section>
+  <!-- Game Over -->
+  <div id="gameOver" style="display:none;">
+    <p>💥 Game Over 💥<br>Score : <span id="finalScore">0</span></p>
+    <button id="restartBtn">Recommencer</button>
+  </div>
 
-    <section id="profil" class="profile-box">
-      <h3>👤 Profil</h3>
-      <p id="userEmail">Non connecté</p>
-      <input type="email" id="email" placeholder="Email" />
-      <input type="password" id="password" placeholder="Mot de passe" />
-      <button class="btn" onclick="login()">Connexion</button>
-      <button class="btn" onclick="signup()">Inscription</button>
-      <button class="btn" onclick="logout()">Déconnexion</button>
-    </section>
-  </main>
+  <!-- Audio -->
+  <audio id="bgMusic" loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3ce1e1a61b.mp3?filename=the-epic-11828.mp3" type="audio/mp3">
+  </audio>
 
-  <script type="module">
-    // ✅ Firebase SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getStorage, ref as sRef, uploadBytes, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+  <audio id="hitSound">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/22/audio_56fa735b25.mp3?filename=error-126627.mp3" type="audio/mp3">
+  </audio>
 
-    // ⚙️ Ta config Firebase (à modifier avec la tienne)
-    const firebaseConfig = {
-      apiKey: "TA_CLE_API",
-      authDomain: "TON_DOMAINE.firebaseapp.com",
-      databaseURL: "https://TON_DOMAINE.firebaseio.com",
-      projectId: "TON_PROJET_ID",
-      storageBucket: "TON_PROJET_ID.appspot.com",
-      messagingSenderId: "XXX",
-      appId: "APP_ID"
-    };
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const startBtn = document.getElementById("startBtn");
+    const startScreen = document.getElementById("startScreen");
+    const gameOverDiv = document.getElementById("gameOver");
+    const finalScore = document.getElementById("finalScore");
+    const restartBtn = document.getElementById("restartBtn");
+    const bgMusic = document.getElementById("bgMusic");
+    const hitSound = document.getElementById("hitSound");
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const storage = getStorage(app);
+    const leftBtn = document.getElementById("leftBtn");
+    const rightBtn = document.getElementById("rightBtn");
 
-    const userEmail = document.getElementById("userEmail");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        userEmail.textContent = "Connecté : " + user.email;
-        loadMessages();
-        loadStories();
-      } else {
-        userEmail.textContent = "Non connecté";
+    let ball, tiles, keys, speed, score, gameRunning;
+
+    function init() {
+      ball = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 15,
+        speedY: 4
+      };
+
+      keys = {};
+      speed = 4;
+      score = 0;
+      gameRunning = true;
+
+      tiles = [];
+      for (let i = 0; i < 40; i++) {
+        tiles.push({
+          x: Math.random() * (canvas.width - 200),
+          y: i * -40,
+          width: 200,
+          height: 40
+        });
       }
-    });
 
-    // Auth
-    window.login = () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      signInWithEmailAndPassword(auth, email, password)
-        .catch(err => alert("Erreur : " + err.message));
+      gameOverDiv.style.display = "none";
+      animate();
+    }
+
+    document.addEventListener("keydown", (e) => keys[e.key] = true);
+    document.addEventListener("keyup", (e) => keys[e.key] = false);
+
+    // Touch events
+    leftBtn.addEventListener("touchstart", () => keys["ArrowLeft"] = true);
+    leftBtn.addEventListener("touchend", () => keys["ArrowLeft"] = false);
+    rightBtn.addEventListener("touchstart", () => keys["ArrowRight"] = true);
+    rightBtn.addEventListener("touchend", () => keys["ArrowRight"] = false);
+
+    startBtn.onclick = () => {
+      startScreen.style.display = "none";
+      canvas.style.display = "block";
+      document.getElementById("touchControls").style.display = "flex";
+      bgMusic.play();
+      init();
     };
 
-    window.signup = () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      createUserWithEmailAndPassword(auth, email, password)
-        .catch(err => alert("Erreur : " + err.message));
+    restartBtn.onclick = () => {
+      canvas.style.display = "block";
+      document.getElementById("touchControls").style.display = "flex";
+      init();
     };
 
-    window.logout = () => signOut(auth);
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#00ff99";
+      ctx.shadowColor = "#0f0";
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.closePath();
+    }
 
-    // Chat
-    window.sendMessage = () => {
-      const input = document.getElementById("messageInput");
-      const msg = input.value.trim();
-      if (!msg || !auth.currentUser) return;
-      push(ref(db, "messages"), {
-        user: auth.currentUser.email,
-        text: msg,
-        time: Date.now()
+    function drawTiles() {
+      ctx.fillStyle = "#222";
+      tiles.forEach(tile => {
+        ctx.shadowColor = "#0f0";
+        ctx.shadowBlur = 10;
+        ctx.fillRect(tile.x, tile.y, tile.width, tile.height);
       });
-      input.value = "";
-    };
+    }
 
-    function loadMessages() {
-      const messagesDiv = document.getElementById("messages");
-      onValue(ref(db, "messages"), snap => {
-        messagesDiv.innerHTML = "";
-        snap.forEach(child => {
-          const { user, text } = child.val();
-          const div = document.createElement("div");
-          div.className = "message";
-          div.textContent = `${user}: ${text}`;
-          messagesDiv.appendChild(div);
+    function moveBall() {
+      if (keys["ArrowLeft"]) ball.x -= 7;
+      if (keys["ArrowRight"]) ball.x += 7;
+      ball.y += ball.speedY;
+    }
+
+    function updateTiles() {
+      for (let tile of tiles) {
+        tile.y += speed;
+
+        // Collision
+        if (ball.x > tile.x && ball.x < tile.x + tile.width &&
+            ball.y + ball.radius > tile.y && ball.y + ball.radius < tile.y + tile.height) {
+          ball.y = tile.y - ball.radius;
+        }
+      }
+
+      // Ajoute nouveau
+      if (tiles[tiles.length - 1].y > 0) {
+        tiles.push({
+          x: Math.random() * (canvas.width - 200),
+          y: tiles[tiles.length - 1].y - 40,
+          width: 200,
+          height: 40
         });
-      });
+      }
+
+      if (tiles[0].y > canvas.height) {
+        tiles.shift();
+        score++;
+        speed += 0.05;
+      }
     }
 
-    // Stories
-    window.uploadStory = () => {
-      const file = document.getElementById("storyInput").files[0];
-      if (!file || !auth.currentUser) return;
-
-      const fileRef = sRef(storage, "stories/" + Date.now() + "_" + file.name);
-      uploadBytes(fileRef, file).then(() => {
-        alert("Story envoyée !");
-        loadStories();
-      });
-    };
-
-    function loadStories() {
-      const listRef = sRef(storage, "stories/");
-      listAll(listRef).then(res => {
-        const listDiv = document.getElementById("storyList");
-        listDiv.innerHTML = "";
-        res.items.forEach(itemRef => {
-          getDownloadURL(itemRef).then(url => {
-            const img = document.createElement("img");
-            img.src = url;
-            img.style = "width:100%;max-width:200px;margin:5px;";
-            listDiv.appendChild(img);
-          });
-        });
-      });
+    function drawScore() {
+      ctx.fillStyle = "#0f0";
+      ctx.font = "24px Arial";
+      ctx.fillText("Score : " + score, 20, 40);
     }
 
-    // Scroll navigation
-    function scrollToSection(id) {
-      document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+    function gameOver() {
+      gameRunning = false;
+      finalScore.textContent = score;
+      canvas.style.display = "none";
+      document.getElementById("touchControls").style.display = "none";
+      gameOverDiv.style.display = "block";
+      hitSound.play();
     }
-    window.scrollToSection = scrollToSection;
+
+    function animate() {
+      if (!gameRunning) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      moveBall();
+      updateTiles();
+      drawTiles();
+      drawBall();
+      drawScore();
+
+      if (ball.y > canvas.height || ball.x < 0 || ball.x > canvas.width) {
+        gameOver();
+        return;
+      }
+
+      requestAnimationFrame(animate);
+    }
   </script>
 </body>
 </html>
