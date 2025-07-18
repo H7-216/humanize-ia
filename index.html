@@ -2,8 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Mon Word Online</title>
+  <title>Mon Word Pro</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
       font-family: 'Amiri', serif;
@@ -13,12 +14,12 @@
     }
 
     .toolbar {
-      background: #333;
+      background: #222;
       color: white;
       padding: 10px;
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 6px;
       align-items: center;
     }
 
@@ -32,7 +33,7 @@
     }
 
     .toolbar button:hover {
-      background: #555;
+      background: #444;
     }
 
     .editor {
@@ -66,9 +67,9 @@
     <button onclick="execCmd('justifyRight')">➡️ Droite</button>
     <button onclick="execCmd('insertUnorderedList')">🔘 Liste</button>
     <button onclick="execCmd('insertOrderedList')">🔢 Numérotée</button>
-    <button onclick="execCmd('createLink')">🔗 Lien</button>
-    <button onclick="execCmd('insertImage')">🖼️ Image</button>
-    <button onclick="execCmd('removeFormat')">🧽 Enlever Style</button>
+    <button onclick="insertLink()">🔗 Lien</button>
+    <button onclick="insertImage()">🖼️ Image</button>
+    <button onclick="execCmd('removeFormat')">🧽 Nettoyer</button>
 
     <input type="color" onchange="execCmdWithArg('foreColor', this.value)">
     <select onchange="execCmdWithArg('formatBlock', this.value)">
@@ -79,19 +80,21 @@
     </select>
 
     <select onchange="setLangDir(this.value)">
-      <option value="ltr">🇫🇷 Français (gauche → droite)</option>
-      <option value="rtl">🇸🇦 Arabe (droite → gauche)</option>
+      <option value="ltr">🇫🇷 Français</option>
+      <option value="rtl">🇸🇦 Arabe</option>
     </select>
 
     <button onclick="copyText()">📋 Copier</button>
     <button onclick="downloadText()">💾 Télécharger</button>
     <button onclick="printText()">🖨️ Imprimer</button>
+    <button onclick="exportPDF()">📄 PDF</button>
     <button onclick="clearEditor()">♻️ Vider</button>
     <button onclick="toggleDarkMode()">🌙/☀️</button>
+    <button onclick="sendEmail()">📤 Envoyer</button>
   </div>
 
-  <div id="editor" class="editor" contenteditable="true" spellcheck="false">
-    ✍️ اكتب هنا / Écris ici...
+  <div id="editor" class="editor" contenteditable="true" spellcheck="true">
+    ✍️ Commence à écrire ici...
   </div>
 
   <script>
@@ -103,9 +106,18 @@
       document.execCommand(command, false, arg);
     }
 
+    function insertLink() {
+      const url = prompt("Lien URL:");
+      if (url) execCmdWithArg('createLink', url);
+    }
+
+    function insertImage() {
+      const url = prompt("URL de l'image:");
+      if (url) execCmdWithArg('insertImage', url);
+    }
+
     function setLangDir(direction) {
-      const editor = document.getElementById("editor");
-      editor.style.direction = direction;
+      document.getElementById("editor").style.direction = direction;
     }
 
     function copyText() {
@@ -129,14 +141,19 @@
 
     function printText() {
       const content = document.getElementById("editor").innerHTML;
-      const printWindow = window.open("", "", "height=600,width=800");
-      printWindow.document.write('<html><head><title>Impression</title>');
-      printWindow.document.write('<link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">');
-      printWindow.document.write('</head><body style="font-family:Amiri,serif;">');
-      printWindow.document.write(content);
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
-      printWindow.print();
+      const win = window.open("", "", "height=600,width=800");
+      win.document.write('<html><head><title>Impression</title>');
+      win.document.write('<link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">');
+      win.document.write('</head><body style="font-family:Amiri,serif;">');
+      win.document.write(content);
+      win.document.write('</body></html>');
+      win.document.close();
+      win.print();
+    }
+
+    function exportPDF() {
+      const element = document.getElementById("editor");
+      html2pdf().from(element).save("document.pdf");
     }
 
     function clearEditor() {
@@ -146,6 +163,49 @@
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
     }
+
+    function sendEmail() {
+      const content = document.getElementById("editor").innerText;
+      const mailtoLink = `mailto:?subject=Document&body=${encodeURIComponent(content)}`;
+      window.location.href = mailtoLink;
+    }
+
+    // Gérer glisser-déposer
+    const editor = document.getElementById("editor");
+
+    editor.addEventListener("dragover", e => {
+      e.preventDefault();
+      editor.style.border = "2px dashed #aaa";
+    });
+
+    editor.addEventListener("dragleave", () => {
+      editor.style.border = "none";
+    });
+
+    editor.addEventListener("drop", e => {
+      e.preventDefault();
+      editor.style.border = "none";
+
+      const files = e.dataTransfer.files;
+      for (let file of files) {
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            const img = document.createElement("img");
+            img.src = evt.target.result;
+            img.style.maxWidth = "100%";
+            editor.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        } else if (file.type === "text/plain" || file.type === "text/html") {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            editor.innerHTML += `<p>${evt.target.result}</p>`;
+          };
+          reader.readAsText(file);
+        }
+      }
+    });
   </script>
 
 </body>
