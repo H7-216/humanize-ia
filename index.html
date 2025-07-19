@@ -2,138 +2,157 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Slope 3D - Version Three.js</title>
+  <title>Memory Match Game</title>
   <style>
-    body { margin: 0; overflow: hidden; background: black; }
-    canvas { display: block; }
+    * {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background: #0f0f0f;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      flex-direction: column;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #00f2ff;
+      text-shadow: 0 0 10px #00f2ff;
+    }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      gap: 15px;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      background-color: #1a1a1a;
+      border: 2px solid #00f2ff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 2em;
+      position: relative;
+      transition: transform 0.3s;
+    }
+    .card.flipped {
+      background-color: #00f2ff;
+      color: #000;
+      transform: rotateY(180deg);
+    }
+    .card.matched {
+      background-color: #00ff88;
+      border-color: #00ff88;
+      color: #000;
+      cursor: default;
+    }
+    #restart {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #00f2ff;
+      border: none;
+      color: #000;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00f2ff;
+      transition: 0.3s;
+    }
+    #restart:hover {
+      background: #00c3cc;
+    }
   </style>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
-<script>
-  let scene, camera, renderer, ball, track = [], speed = 0.2, maxLanes = 5;
-  let trackSegments = 100, segmentLength = 20, lanes = [-4, -2, 0, 2, 4];
-  let obstacles = [];
-  let clock = new THREE.Clock();
 
-  init();
-  animate();
+  <h1>🧠 Memory Match</h1>
+  <div class="game-board" id="board"></div>
+  <button id="restart">🔄 Recommencer</button>
 
-  function init() {
-    // Scène et caméra
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 5, 10);
+  <script>
+    const board = document.getElementById('board');
+    const restartBtn = document.getElementById('restart');
 
-    // Lumière
-    const light = new THREE.PointLight(0xffffff, 1);
-    light.position.set(0, 10, 10);
-    scene.add(light);
+    const emojis = ['🍕','🚀','🐱','⚽','🍔','🎮','🎲','🐍'];
+    let cards = [...emojis, ...emojis];
+    let firstCard = null;
+    let lockBoard = false;
 
-    // Renderer
-    renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    // Sol de base
-    const trackMat = new THREE.MeshPhongMaterial({color: 0x111111});
-    for (let i = 0; i < trackSegments; i++) {
-      const trackPart = new THREE.Mesh(
-        new THREE.BoxGeometry(10, 0.5, segmentLength),
-        trackMat
-      );
-      trackPart.position.z = -i * segmentLength;
-      track.push(trackPart);
-      scene.add(trackPart);
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     }
 
-    // Balle
-    const ballGeo = new THREE.SphereGeometry(0.5, 32, 32);
-    const ballMat = new THREE.MeshStandardMaterial({color: 0x00ff00, emissive: 0x00ff00});
-    ball = new THREE.Mesh(ballGeo, ballMat);
-    ball.position.y = 1;
-    scene.add(ball);
-
-    // Obstacles initiaux
-    for (let i = 10; i < trackSegments; i += 5) {
-      spawnObstacle(-i * segmentLength);
+    function createBoard() {
+      board.innerHTML = '';
+      shuffle(cards).forEach((emoji, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.emoji = emoji;
+        card.dataset.index = index;
+        card.innerHTML = `<span style="visibility:hidden">${emoji}</span>`;
+        card.addEventListener('click', flipCard);
+        board.appendChild(card);
+      });
     }
 
-    // Événements clavier
-    document.addEventListener("keydown", onKeyDown);
-    window.addEventListener('resize', onResize);
-  }
+    function flipCard() {
+      if (lockBoard || this.classList.contains('flipped') || this.classList.contains('matched')) return;
 
-  function spawnObstacle(z) {
-    const lane = lanes[Math.floor(Math.random() * lanes.length)];
-    const obstacle = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0xff0000})
-    );
-    obstacle.position.set(lane, 0.75, z);
-    scene.add(obstacle);
-    obstacles.push(obstacle);
-  }
+      this.classList.add('flipped');
+      this.querySelector('span').style.visibility = 'visible';
 
-  function onKeyDown(e) {
-    if (e.key === "ArrowLeft" || e.key === "a") {
-      ball.position.x -= 2;
-      if (ball.position.x < -4) ball.position.x = -4;
-    }
-    if (e.key === "ArrowRight" || e.key === "d") {
-      ball.position.x += 2;
-      if (ball.position.x > 4) ball.position.x = 4;
-    }
-  }
-
-  function animate() {
-    requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-
-    // Bouger la piste
-    for (let part of track) {
-      part.position.z += speed;
-      if (part.position.z > 10) {
-        part.position.z -= trackSegments * segmentLength;
+      if (!firstCard) {
+        firstCard = this;
+      } else {
+        lockBoard = true;
+        if (this.dataset.emoji === firstCard.dataset.emoji) {
+          this.classList.add('matched');
+          firstCard.classList.add('matched');
+          resetTurn();
+        } else {
+          setTimeout(() => {
+            this.classList.remove('flipped');
+            this.querySelector('span').style.visibility = 'hidden';
+            firstCard.classList.remove('flipped');
+            firstCard.querySelector('span').style.visibility = 'hidden';
+            resetTurn();
+          }, 800);
+        }
       }
     }
 
-    // Bouger les obstacles
-    for (let o of obstacles) {
-      o.position.z += speed;
-      if (o.position.z > 10) {
-        o.position.z = -trackSegments * segmentLength;
-        o.position.x = lanes[Math.floor(Math.random() * lanes.length)];
+    function resetTurn() {
+      firstCard = null;
+      lockBoard = false;
+      checkWin();
+    }
+
+    function checkWin() {
+      const matched = document.querySelectorAll('.matched');
+      if (matched.length === cards.length) {
+        setTimeout(() => {
+          alert('🎉 Bravo ! Tu as gagné !');
+        }, 300);
       }
     }
 
-    // Collision
-    for (let o of obstacles) {
-      if (Math.abs(ball.position.z - o.position.z) < 1 &&
-          Math.abs(ball.position.x - o.position.x) < 1) {
-        alert("💥 Game Over !");
-        window.location.reload();
-      }
-    }
+    restartBtn.addEventListener('click', createBoard);
 
-    // Avancer la balle (visuellement le monde recule)
-    ball.position.z += speed;
+    createBoard();
+  </script>
 
-    // Caméra suit la balle
-    camera.position.z = ball.position.z + 10;
-    camera.lookAt(ball.position.x, ball.position.y, ball.position.z);
-
-    // Augmenter la vitesse lentement
-    speed += 0.0002;
-
-    renderer.render(scene, camera);
-  }
-
-  function onResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  }
-</script>
 </body>
 </html>
