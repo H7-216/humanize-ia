@@ -1,0 +1,15 @@
+{
+  "name": "CardSlayer",
+  "short_name": "CardSlayer",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#00f2ff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/8619/8619513.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
